@@ -11,6 +11,8 @@ from bot import download_dict, download_dict_lock, STATUS_LIMIT, botStartTime, D
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
+import psutil
+
 MAGNET_REGEX = r"magnet:\?xt=urn:btih:[a-zA-Z0-9]*"
 
 URL_REGEX = r"(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+"
@@ -20,26 +22,26 @@ PAGE_NO = 1
 
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Up.."
-    STATUS_DOWNLOADING = "Down.."
-    STATUS_CLONING = "Cloning.."
-    STATUS_WAITING = "Queue"
-    STATUS_PAUSED = "Pause"
-    STATUS_ARCHIVING = "Archiving.."
-    STATUS_EXTRACTING = "Extracting.."
-    STATUS_SPLITTING = "Spliting.."
-    STATUS_CHECKING = "CheckUp"
-    STATUS_SEEDING = "Seed"
+    STATUS_UPLOADING = "𝗨𝗽𝗹𝗼𝗮𝗱𝗶𝗻𝗴...📤"
+    STATUS_DOWNLOADING = "𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱𝗶𝗻𝗴...📥"
+    STATUS_CLONING = "𝗖𝗹𝗼𝗻𝗶𝗻𝗴...♻️"
+    STATUS_WAITING = "𝗤𝘂𝗲𝘂𝗲𝗱...💤"
+    STATUS_PAUSE = "𝗣𝗮𝘂𝘀𝗲𝗱...⛔️"
+    STATUS_ARCHIVING = "𝗔𝗿𝗰𝗵𝗶𝘃𝗶𝗻𝗴...🔐"
+    STATUS_EXTRACTING = "𝗘𝘅𝘁𝗿𝗮𝗰𝘁𝗶𝗻𝗴...📂"
+    STATUS_SPLITTING = "𝗦𝗽𝗹𝗶𝘁𝘁𝗶𝗻𝗴...✂️"
+    STATUS_CHECKING = "𝗖𝗵𝗲𝗰𝗸𝗶𝗻𝗴𝗨𝗽...📝"
+    STATUS_SEEDING = "𝗦𝗲𝗲𝗱𝗶𝗻𝗴...🌧"
 class EngineStatus:
-    STATUS_ARIA = "Aria2c"
-    STATUS_GD = "Google Api"
-    STATUS_MEGA = "Mega Api"
-    STATUS_QB = "Bittorrent"
-    STATUS_TG = "Pyrogram"
-    STATUS_YT = "YT-dlp"
-    STATUS_EXT = "pExtract"
-    STATUS_SPLIT = "FFmpeg"
-    STATUS_ZIP = "p7zip"
+    STATUS_ARIA = "Aria2c📶"
+    STATUS_GDRIVE = "Google API♻️"
+    STATUS_MEGA = "Mega API⭕️"
+    STATUS_QB = "qBittorrent🦠"
+    STATUS_TG = "Pyrogram💥"
+    STATUS_YT = "Yt-dlp🌟"
+    STATUS_EXT = "extract | pextract⚔️"
+    STATUS_SPLIT = "FFmpeg✂️"
+    STATUS_ZIP = "7z🛠"
 
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
@@ -132,33 +134,37 @@ def get_readable_message():
                 globals()['COUNT'] -= STATUS_LIMIT
                 globals()['PAGE_NO'] -= 1
         for index, download in enumerate(list(download_dict.values())[COUNT:], start=1):
-            msg += f"<b>Name:</b> <code>{escape(str(download.name()))}</code>"
-            msg += f"\n<b>Status:</b> <i>{download.status()}</i> | {download.eng()}"
+            msg += f"<b>═════〣 MR X CLOUD  〣═════</b>\n\n<b>• <a href='{download.message.link}'>{download.status()}</a>: </b>"
+            msg += f"<code>{escape(str(download.name()))}</code>"
             if download.status() not in [MirrorStatus.STATUS_SPLITTING, MirrorStatus.STATUS_SEEDING]:
-                msg += f"\n{get_progress_bar_string(download)} {download.progress()}"
-                msg += f"\n<b>Processed:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                msg += f"\n<b>Speed:</b> {download.speed()} | <b>ETA:</b> {download.eta()}"
-                msg += f"\n<b>Time Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                msg += f"\n<b>├ 𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱:</b> {get_progress_bar_string(download)} {download.progress()}"
+                msg += f"\n<b>🔄 𝗣𝗿𝗼𝗰𝗲𝘀𝘀𝗲𝗱:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
+                msg += f"\n<b>⚡ 𝗦𝗽𝗲𝗲𝗱:</b> {download.speed()} | <b>⏳ 𝗘𝗧𝗔:</b> {download.eta()}"
+                msg += f"\n<b>⏳ 𝗘𝗹𝗮𝗽𝘀𝗲𝗱: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                msg += f"\n<b>├⚠️ 𝗪𝗮𝗿𝗻: </b> <code>/warn {download.message.from_user.id}</code>"
                 if hasattr(download, 'seeders_num'):
                     try:
-                        msg += f"\n<b>Seeders:</b> {download.seeders_num()} | <b>Leechers:</b> {download.leechers_num()}"
+                        msg += f"\n<b>𝗦𝗲𝗲𝗱𝗲𝗿𝘀:</b> {download.seeders_num()} | <b>𝗟𝗲𝗲𝗰𝗵𝗲𝗿𝘀:</b> {download.leechers_num()}"
                     except:
                         pass
 
             elif download.status() == MirrorStatus.STATUS_SEEDING:
-                msg += f"\n<b>Size: </b>{download.size()}"
-                msg += f"\n<b>Speed: </b>{download.upload_speed()}"
-                msg += f" | <b>Uploaded: </b>{download.uploaded_bytes()}"
-                msg += f"\n<b>Ratio: </b>{download.ratio()}"
-                msg += f" | <b>Time: </b>{download.seeding_time()}"
+                msg += f"\n<b>├📦 𝗦𝗶𝘇𝗲: </b>{download.size()}"
+                msg += f"\n<b>├⛓️ 𝗘𝗻𝗴𝗶𝗻𝗲:</b> <code>qBittorrent v4.4.2</code>"
+                msg += f"\n<b>├⚡ 𝗦𝗽𝗲𝗲𝗱: </b>{download.upload_speed()}"
+                msg += f"\n<b>├🔺 𝗨𝗽𝗹𝗼𝗮𝗱𝗲𝗱: </b>{download.uploaded_bytes()}"
+                msg += f"\n<b>├📎 𝗥𝗮𝘁𝗶𝗼: </b>{download.ratio()}"
+                msg += f" | <b>⏲️ 𝗧𝗶𝗺𝗲: </b>{download.seeding_time()}"
+                msg += f"\n<b>├⏳ 𝗘𝗹𝗮𝗽𝘀𝗲𝗱: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                msg += f"\n<b>╰❌ 𝗖𝗮𝗻𝗰𝗲𝗹: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
             else:
-                msg += f"\n<b>Size: </b>{download.size()}"
+                mmsg += f"\n<b>╰📐 𝗦𝗶𝘇𝗲: </b>{download.size()}"
             if download.message.chat.type != 'private':
                 uname =download.message.from_user.first_name
                 msg += f"\n<b><a href='{download.message.link}'>Source</a>:</b> {uname} | <b>Id :</b> <code>{download.message.from_user.id}</code>"
             else:
                 msg += ''
-            msg += f"\n<code>/{BotCommands.CancelMirror} {download.gid()}</code>"
+            msg += f"\n<b>❌ 𝗖𝗮𝗻𝗰𝗲𝗹: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>\n________________________________"
             msg += "\n\n"
             if STATUS_LIMIT is not None and index == STATUS_LIMIT:
                 break
@@ -185,18 +191,18 @@ def get_readable_message():
                     up_speed += float(spd.split('K')[0]) * 1024
                 elif 'M' in spd:
                     up_speed += float(spd.split('M')[0]) * 1048576
-        bmsg = f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
-        bmsg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
-        bmsg += f"\n<b>DL:</b> {get_readable_file_size(dl_speed)}/s | <b>UL:</b> {get_readable_file_size(up_speed)}/s"
+            bmsg = f"<b>🖥 CPU:</b> {cpu_percent()}% | <b>💿 FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+            bmsg += f"\n<b>🎮 RAM:</b> {virtual_memory().percent}% | <b>🟢 UPTIME:</b> {get_readable_time(time() - botStartTime)}"
+            bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dl_speed)}/s | <b>🔺 UL:</b> {get_readable_file_size(up_speed)}/s"
         buttons = ButtonMaker()
-        buttons.sbutton("Statistics", str(FOUR))
+        buttons.sbutton("📈Statistics", str(FOUR))
         sbutton = buttons.build_menu(1)
         if STATUS_LIMIT is not None and tasks > STATUS_LIMIT:
             msg += f"<b>Page:</b> {PAGE_NO}/{pages} | <b>Tasks:</b> {tasks}\n"
             buttons = ButtonMaker()
-            buttons.sbutton("Previous", "status pre")
-            buttons.sbutton("Next", "status nex")
-            buttons.sbutton("Statistics", str(FOUR))
+            buttons.sbutton("⏪Previous", "status pre")
+            buttons.sbutton("Next⏩", "status nex")
+            buttons.sbutton("📈Statistics", str(FOUR))
             button = buttons.build_menu(2)
             return msg + bmsg, button
         return msg + bmsg, sbutton
@@ -300,7 +306,11 @@ def pop_up_stats(update, context):
     stats = bot_sys_stats()
     query.answer(text=stats, show_alert=True)
 def bot_sys_stats():
-    total, used, free, disk = disk_usage('/')
+    currentTime = get_readable_time(time() - botStartTime)
+    cpu = psutil.cpu_percent()
+    mem = psutil.virtual_memory().percent
+    disk = psutil.disk_usage(DOWNLOAD_DIR).percent
+    total, used, free = shutil.disk_usage(DOWNLOAD_DIR)
     used = get_readable_file_size(used)
     free = get_readable_file_size(free)
     sent = get_readable_file_size(net_io_counters().bytes_sent)
@@ -337,10 +347,17 @@ def bot_sys_stats():
             elif 'MB/s' in spd:
                 upspeed_bytes += float(spd.split('M')[0]) * 1048576
     stats = f"""
-USED : {used} | FREE :{free}
-SENT : {sent} | RECV : {recv}\n
+BOT UPTIME⏰: {currentTime}
+    
+CPU : {cpu}% | RAM : {mem}%
+
 DL: {num_active} | UP : {num_upload} | SPLIT : {num_split}
 ZIP : {num_archi} | UNZIP : {num_extract} | TOTAL : {tasks} 
+    
+USED : {used} | FREE :{free}
+SENT : {sent} | RECV : {recv}\n
+
+Made with ❤️ by @MR_X_MIRROR
 """
     return stats
 dispatcher.add_handler(
