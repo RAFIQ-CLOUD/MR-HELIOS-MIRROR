@@ -502,6 +502,12 @@ try:
 except:
     SEARCH_PLUGINS = None
 try:
+    TIMEZONE = getConfig("TIMEZONE")
+    if len(TIMEZONE) == 0:
+        TIMEZONE = None
+except:
+    TIMEZONE = "Asia/Kolkata"    
+try:
     APPDRIVE_EMAIL = getConfig('APPDRIVE_EMAIL')
     APPDRIVE_PASS = getConfig('APPDRIVE_PASS')
     if len(APPDRIVE_EMAIL) == 0 or len(APPDRIVE_PASS) == 0:
