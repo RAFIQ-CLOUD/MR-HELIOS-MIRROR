@@ -18,6 +18,12 @@ from .helper.telegram_helper.button_build import ButtonMaker
 
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, shell, eval, delete, count, leech_settings, search, rss, bt_select, sleep
 from .helper.ext_utils.telegraph_helper import telegraph
+from bot import *
+from datetime import datetime
+
+now=datetime.now(pytz.timezone(f'{TIMEZONE}'))
+
+IMAGE_STATS = "https://telegra.ph/file/078c51630edb3a89ee4d4.jpg"
 
 def stats(update, context):
     if ospath.exists('.git'):
@@ -37,7 +43,8 @@ def stats(update, context):
     mem_t = get_readable_file_size(memory.total)
     mem_a = get_readable_file_size(memory.available)
     mem_u = get_readable_file_size(memory.used)
-    stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
+    stats = f'<b><u>MR X MIRROR Bot Statistics</u></b>\n\n'\
+            f'<b>Commit Date:</b> {last_commit}\n\n'\
             f'<b>Bot Uptime:</b> {currentTime}\n\n'\
             f'<b>Total Disk Space:</b> {total}\n'\
             f'<b>Used:</b> {used} | <b>Free:</b> {free}\n\n'\
@@ -49,7 +56,16 @@ def stats(update, context):
             f'<b>Total Memory:</b> {mem_t}\n'\
             f'<b>Free:</b> {mem_a} | '\
             f'<b>Used:</b> {mem_u}\n\n'
-    sendMessage(stats, context.bot, update.message)
+    update.effective_message.reply_photo(
+                IMAGE_STATS,
+                stats,
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup(
+                    [[
+                         InlineKeyboardButton(
+                             text="MR X Cloud",
+                             url="https://t.me/MR_X_CLOUD"),
+                    ]]))
 
 
 def start(update, context):
@@ -83,7 +99,7 @@ def restart(update, context):
 
 def ping(update, context):
     start_time = int(round(time() * 1000))
-    reply = sendMessage("Starting Ping", context.bot, update.message)
+    reply = sendMessage("Starting_Ping ⛔", context.bot, update.message)
     end_time = int(round(time() * 1000))
     editMessage(f'{end_time - start_time} ms', reply)
 
@@ -153,7 +169,7 @@ Hei, Need Help!!
 '''
 try:
     help = telegraph.create_page(
-        title='Helios-Mirror Help',
+        title='MR X CLOUD',
         content=help_string_telegraph,
     )["path"]
 except Exception as err:
@@ -166,6 +182,8 @@ def bot_help(update, context):
     sendMarkup(help_string, context.bot, update.message, reply_markup)
 def main():
     start_cleanup()
+    date = now.strftime('%d/%m/%y')
+    time = now.strftime('%I:%M:%S %p')
     notifier_dict = False
     if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
         if notifier_dict := DbManger().get_incomplete_tasks():
@@ -173,15 +191,23 @@ def main():
                 if ospath.isfile(".restartmsg"):
                     with open(".restartmsg") as f:
                         chat_id, msg_id = map(int, f)
-                    msg = 'Restarted Successfully!'
+                    msg = f"😎Restarted successfully❗\n"
+                    msg += f" DATE: {date}\n"
+                    msg += f" TIME: {time}\n"
+                    msg += f" TIMEZONE: {TIMEZONE}\n"
                 else:
-                    msg = 'Bot Restarted!'
+                    msg = f"<b>Every Ends is a New Beginning! <b>\n\n**Bot Got Re-Started 🚀**"
+                    msg += f"**📅 Date : {date}**\n"
+                    msg += f"**⏰ Time : {time}**\n\n"
+                    msg += f"**🗺️ Time Zone : {TIMEZONE}**\n\n"
+                    msg += f"**Please Re-Download Your Tasks 🚶**"
+
                 for tag, links in data.items():
-                     msg += f"\n\n{tag}: "
+                     msg += f"\n{tag}: "
                      for index, link in enumerate(links, start=1):
                          msg += f" <a href='{link}'>{index}</a> |"
                          if len(msg.encode()) > 4000:
-                             if 'Restarted Successfully!' in msg and cid == chat_id:
+                             if '😎Restarted successfully❗' in msg and cid == chat_id:
                                  bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTML', disable_web_page_preview=True)
                                  osremove(".restartmsg")
                              else:
@@ -190,7 +216,7 @@ def main():
                                  except Exception as e:
                                      LOGGER.error(e)
                              msg = ''
-                if 'Restarted Successfully!' in msg and cid == chat_id:
+                if '😎Restarted successfully❗' in msg and cid == chat_id:
                      bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTML', disable_web_page_preview=True)
                      osremove(".restartmsg")
                 else:
@@ -202,12 +228,14 @@ def main():
     if ospath.isfile(".restartmsg"):
         with open(".restartmsg") as f:
             chat_id, msg_id = map(int, f)
-        bot.edit_message_text("Restarted Successfully!", chat_id, msg_id)
+        msg = f"😎Restarted successfully❗\n DATE: {date}\n TIME: {time}\n TIMEZONE: {TIMEZONE}\n"
+        bot.edit_message_text(msg, chat_id, msg_id)
         osremove(".restartmsg")
     elif not notifier_dict and AUTHORIZED_CHATS:
+        text = f"<b>Every Ends is a New Beginning! \n\nBot Got Re-Started 🚀\n\n📅 Date : {date}\n⏰ Time : {time}\n\n🗺️ TimeZone : {TIMEZONE}\n\nPlease Re-Download Your Tasks 🚶</b>"
         for id_ in AUTHORIZED_CHATS:
             try:
-                bot.sendMessage(id_, "Bot Restarted!", 'HTML')
+                bot.sendMessage(chat_id=id_, text=text, parse_mode=ParseMode.HTML)
             except Exception as e:
                 LOGGER.error(e)
 
@@ -228,7 +256,7 @@ def main():
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(log_handler)
     updater.start_polling(drop_pending_updates=IGNORE_PENDING_REQUESTS)
-    LOGGER.info("Bot Started!")
+    LOGGER.info("💥𝐁𝐨𝐭 𝐒𝐭𝐚𝐫𝐭𝐞𝐝❗")
     signal(SIGINT, exit_clean_up)
 
 app.start()
